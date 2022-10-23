@@ -1,16 +1,20 @@
 from flask import Flask, request, Response
 from botbuilder.schema import Activity
-from botbuilder.core import BotFrameworkAdapter, BotFrameworkAdapterSettings
+from botbuilder.core import BotFrameworkAdapter, BotFrameworkAdapterSettings, ConversationState, UserState, MemoryStorage
 from flymebot import FlyMeBot
 import asyncio
+
+botadaptersettings = BotFrameworkAdapterSettings('', '') 
+botadapter =BotFrameworkAdapter(botadaptersettings)
+
+mem_storage = MemoryStorage()
+conv_state = ConversationState(mem_storage)
+user_state = UserState(mem_storage)
 
 
 app = Flask(__name__)
 loop = asyncio.get_event_loop()
-flymebot = FlyMeBot()
-
-botadaptersettings = BotFrameworkAdapterSettings('', '') 
-botadapter =BotFrameworkAdapter(botadaptersettings)
+flymebot = FlyMeBot(conv_state, user_state)
 
 @app.route('/api/messages', methods=['POST'])
 def api_messages():
