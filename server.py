@@ -1,7 +1,7 @@
 from flask import Flask, request, Response
 from botbuilder.schema import Activity
 from botbuilder.core import BotFrameworkAdapter, BotFrameworkAdapterSettings, ConversationState, UserState, MemoryStorage
-from flymebot import FlyMeBot
+from model.flymebot import FlyMeBot
 import asyncio
 
 botadaptersettings = BotFrameworkAdapterSettings('', '') 
