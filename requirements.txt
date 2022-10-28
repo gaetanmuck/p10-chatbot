@@ -1,0 +1,10 @@
+botbuilder==0.0.1
+botbuilder-ai==4.14.2
+botbuilder-applicationinsights==4.14.2
+botbuilder-azure==4.14.2
+botbuilder-core==4.14.2
+botbuilder-dialogs==4.14.2
+botbuilder-schema==4.14.2
+botframework-connector==4.14.2
+botframework-streaming==4.14.2
+Flask==2.2.2
