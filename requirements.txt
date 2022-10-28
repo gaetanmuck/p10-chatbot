@@ -7,4 +7,4 @@ botbuilder-dialogs==4.14.2
 botbuilder-schema==4.14.2
 botframework-connector==4.14.2
 botframework-streaming==4.14.2
-Flask==2.2.2
+Flask
