@@ -16,6 +16,10 @@ app = Flask(__name__)
 loop = asyncio.get_event_loop()
 flymebot = FlyMeBot(conv_state, user_state)
 
+@app.route('/test', methots=['GET'])
+def test():
+    return 'Hello world!'
+
 @app.route('/api/messages', methods=['POST'])
 def api_messages():
 
