@@ -8,3 +8,4 @@ botbuilder-schema==4.14.2
 botframework-connector==4.14.2
 botframework-streaming==4.14.2
 Flask
+opencensus-ext-azure

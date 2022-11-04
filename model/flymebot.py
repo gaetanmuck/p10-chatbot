@@ -4,12 +4,77 @@ from dotenv import load_dotenv; load_dotenv()
 from tools.clu import ask_clu
 from model.usermodel import UserModel
 from model.convstate import ConvState
+from opencensus.ext.azure import metrics_exporter
+from opencensus.stats import aggregation as aggregation_module
+from opencensus.stats import measure as measure_module
+from opencensus.stats import stats as stats_module
+from opencensus.stats import view as view_module
+from opencensus.tags import tag_map as tag_map_module
 
+
+###########################################
+# About Azure insights and metrics there: #
+###########################################
+
+
+# Global vars
+stats = stats_module.stats
+view_manager = stats.view_manager
+stats_recorder = stats.stats_recorder
+
+# Number of conversation
+conversation_count = measure_module.MeasureInt('Conversation', 'Number of conversation since last deployment', 'conversations')
+conversation_view = view_module.View('Conversation view', 'Number of conversation since last deployment', [], conversation_count, aggregation_module.CountAggregation())
+view_manager.register_view(conversation_view)
+
+# Number of Ended conversation
+conversation_ended_count = measure_module.MeasureInt('Ended conversation', 'Number of ended conversation since last deployment', 'ended conversations')
+conversation_ended_view = view_module.View('Ended conversation view', 'Number of ended conversation since last deployment', [], conversation_ended_count, aggregation_module.CountAggregation())
+view_manager.register_view(conversation_ended_view)
+
+# Number of messages
+message_count = measure_module.MeasureInt('Message', 'Number of messages since last deployment', 'messages')
+message_view = view_module.View('Message view', 'Number of messages since last deployment', [], message_count, aggregation_module.CountAggregation())
+view_manager.register_view(message_view)
+
+# Number of correctly interpretated sentences
+right_interpretation_count = measure_module.MeasureInt('Understood', 'Number of sentences correctly understood since last deployment', 'right interpretations')
+message_view = view_module.View('Understood view', 'Number of sentences correctly understood since last deployment', [], right_interpretation_count, aggregation_module.CountAggregation())
+view_manager.register_view(message_view)
+
+# Number of wrongly interpretated sentences
+wrong_interpretation_count = measure_module.MeasureInt('Misunderstood', 'Number of sentences misunderstood since last deployment', 'wrong interpretations')
+wrong_interpretation_view = view_module.View('Misunderstood view', 'Number of sentences misunderstood since last deployment', [], wrong_interpretation_count, aggregation_module.CountAggregation())
+view_manager.register_view(wrong_interpretation_view)
+
+# Total interpretations
+total_interpretation_count = measure_module.MeasureInt('Interpretations', 'Number of sentences interpretated since last deployment', 'interpretations')
+total_interpretation_view = view_module.View('Understood view', 'Number of sentences interpretated since last deployment', [], total_interpretation_count, aggregation_module.CountAggregation())
+view_manager.register_view(total_interpretation_view)
+
+# Rates of correct interpretations
+right_rate_count = measure_module.MeasureFloat('Right rate', '% of sentences correctly interpretated since last deployment', '%')
+right_rate_interpretation_view = view_module.View('Right rate view', 'Number of sentences interpretated since last deployment', [], right_rate_count, aggregation_module.LastValueAggregation())
+view_manager.register_view(right_rate_interpretation_view)
+
+# Again, globals:
+mmap1 = stats_recorder.new_measurement_map()
+tmap1 = tag_map_module.TagMap()
+mmap2 = stats_recorder.new_measurement_map()
+tmap2 = tag_map_module.TagMap()
+
+exporter = metrics_exporter.new_metrics_exporter()
+view_manager.register_exporter(exporter)
+
+###########################################
 
 class FlyMeBot(ActivityHandler):
     
     def __init__(self, conv_state: ConversationState, user_state: UserState):
         """Initialize Bot with 'global' variables"""
+
+        self.right_interpretation = 0
+        self.wrong_interpretation = 0
 
         self.conv_state = conv_state
         self.user_state = user_state
@@ -31,6 +96,12 @@ class FlyMeBot(ActivityHandler):
 
     async def on_members_added_activity(self, member_added: ChannelAccount, turn_context: TurnContext):
         """Begining of conversation"""
+
+        # Adding 1 conversation to azure insights
+        mmap1.measure_int_put(conversation_count, 1)
+        mmap1.record(tmap1)
+        print('-- INSIGHTS: New conversation --')
+
         await self.start_conv(turn_context)
 
 
@@ -45,6 +116,10 @@ class FlyMeBot(ActivityHandler):
 
     async def end_conv(self, turn_context: TurnContext):
         """Print out the ending messages."""
+
+        mmap1.measure_int_put(conversation_ended_count, 1)
+        mmap1.record(tmap1)
+        print('-- INSIGHTS: Conversation ended -- ')
 
         answer = "All right, I will look for that, and send you an offer that most correspond to your wishes, directly in your email!"
         answer += "\r\nI hope the conversation went smoothly enough to satisfy you."
@@ -64,6 +139,11 @@ class FlyMeBot(ActivityHandler):
 
     async def on_message_activity(self, turn_context: TurnContext):
         """Message handling"""
+        
+        # Adding 1 message to azure insights
+        mmap1.measure_int_put(message_count, 1)
+        mmap1.record(tmap1)
+        print('-- INSIGHTS: New message -- ')
 
         incoming_text = turn_context.activity.text
 
@@ -76,7 +156,6 @@ class FlyMeBot(ActivityHandler):
             found_entities = ask_clu(incoming_text)
 
             if len(found_entities) == 0:
-                ######## Send error message to Insights: not related message ########
                 answer = 'I found no information about a possible flight in your message, can you try again with different words?'
                 await turn_context.send_activity(answer)
                 conv_state.step = 'init' # We keep it at this step
@@ -93,13 +172,18 @@ class FlyMeBot(ActivityHandler):
 
             # If he answered YES (or alike):
             # Close the conversation
-            if incoming_text in ['yes', 'y', 'yeah', 'yea', 'yep', 'ok', 'okey', 'okay', 'affirmative', 'amen', 'good', 'true', 'sure', 'aye']:
-                ######## Send error message to Insights: good predictions ########
+            if incoming_text.lower() in ['yes', 'y', 'yeah', 'yea', 'yep', 'ok', 'okey', 'okay', 'affirmative', 'amen', 'good', 'true', 'sure', 'aye']:
                 missing = user_infos.get_missing()
+
+                # Adding 1 correct interpretation to azure insights
+                mmap2.measure_int_put(right_interpretation_count, 1)
+                mmap2.record(tmap2)
+                self.right_interpretation += 1
+                print('-- INSIGHTS: Right interpretation -- ')
 
                 # The user provided every information needed: finish the conversation
                 if missing == 'complete':
-                    self.end_conv(turn_context)
+                    await self.end_conv(turn_context)
                     conv_state.step = 'init'
 
                 # There is some information missing:
@@ -108,10 +192,18 @@ class FlyMeBot(ActivityHandler):
                     await self.look_for_missing(missing, turn_context)
                     conv_state.step = 'look-for-missing'
 
+
             # If he answered NO (or alike):
             # Change what information needs to be changed
-            elif incoming_text in ['no', 'n', 'nope', 'not', 'wrong', 'not really']:
-                ######## Send error message to Insights: bad predictions ########
+            elif incoming_text.lower() in ['no', 'n', 'nope', 'not', 'wrong', 'not really']:
+
+                # Adding 1 wrong interpretation to azure insights
+                mmap2.measure_int_put(wrong_interpretation_count, 1)
+                mmap2.record(tmap2)
+                self.wrong_interpretation += 1
+                print('-- INSIGHTS: Wrong interpretation -- ')
+
+                # Send response to user
                 answer = 'That is sad...\r\n'
                 answer += 'What is wrong? The "destination", "origin", "go date", "back date" or "budget"?'
                 await turn_context.send_activity(answer)
@@ -119,6 +211,10 @@ class FlyMeBot(ActivityHandler):
             
             # If he answered something the bot did not get (not registered as a yes or a no)
             else: await turn_context.send_activity('Mmh, was that a yes or a no?')
+        
+            mmap2.measure_float_put(right_rate_count, self.right_interpretation / (self.right_interpretation + self.wrong_interpretation))
+            mmap2.record(tmap2)
+            print('-- INSIGHTS: Interpretation rate: -- ', self.right_interpretation / (self.right_interpretation + self.wrong_interpretation))
 
 
         # The question about a specific information has been asked to the user, parse the user answer
