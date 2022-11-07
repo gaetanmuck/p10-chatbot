@@ -82,4 +82,9 @@ jobs:
       - name: Run unit tests
         env:
           CLU_ENDPOINT: ${{ secrets.CLU_ENDPOINT }}
+          CLU_RESOURCE_KEY: ${{ secrets.CLU_RESOURCE_KEY }}
+          CLU_PROJECT_NAME: ${{ secrets.CLU_PROJECT_NAME }}
+          CLU_DEPLOYMENT_NAME: ${{ secrets.CLU_DEPLOYMENT_NAME }}
+          CLU_MODEL_NAME: ${{ secrets.CLU_MODEL_NAME }}
+          CLU_API_VERSION_TEST: ${{ secrets.CLU_API_VERSION_TEST }}
         run: python scripts/05-unit-test.py
