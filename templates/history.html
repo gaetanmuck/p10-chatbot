@@ -1,0 +1,33 @@
+<html>
+    <head>
+        <link rel="stylesheet" href="{{url_for('static', filename='main.css')}}" />
+    </head>
+
+    <body>        
+        <div class="column">
+
+            <div class="column" style="height:30%">
+                <h1>FlyMe Bot conversations history</h1>
+                <div class="p">
+                    Here you can analyse the bot conversation history, and get the messages that went wrong.
+                </div>
+            </div>
+            <div class="columns">
+                <div class="row">
+                    <div class="columns">
+                        <h3 id="recom-title">Conversations</h3>
+                        <ul id="list" class="p">
+                            {% for conversation in conversations %}
+                                <li><a href="/conv-detail?conversation_id={{ conversation['messages'][0]['conv_id'] }}">Conversation number {{ conversation['messages'][0]['conv_id'] }}</a>
+                                {% if not conversation['understood'] %}
+                                    <span style="font-size: 15px;color: #aaa">[had a misunderstanding]</span>
+                                {% endif %}
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </body>
+</html>

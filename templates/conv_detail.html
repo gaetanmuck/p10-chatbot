@@ -1,0 +1,33 @@
+<html>
+    <head>
+        <link rel="stylesheet" href="{{url_for('static', filename='main.css')}}" />
+    </head>
+
+    <body>        
+        <div class="column">
+
+            <div class="column" style="height:30%">
+                <h1>FlyMe Bot conversation history</h1>
+                <div class="p">
+                    Here you can analyse one particular conversation history.
+                </div>
+            </div>
+            <div class="columns">
+                <div class="row">
+                    <div class="columns">
+                        {% if conversation['understood'] %}
+                        <h3>Conversation</h3>
+                        {% else %}
+                        <h3 style="color:red">Conversation</h3>
+                        {% endif %}
+                        <ul class="p">
+                            {% for message in conversation['messages'] %}
+                                <li>[{{ message['writer'].upper() }}]: {{ message['text'] }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </body>
+</html>

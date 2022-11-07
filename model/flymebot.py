@@ -10,6 +10,7 @@ from opencensus.stats import measure as measure_module
 from opencensus.stats import stats as stats_module
 from opencensus.stats import view as view_module
 from opencensus.tags import tag_map as tag_map_module
+import requests, os
 
 
 ###########################################
@@ -83,6 +84,22 @@ class FlyMeBot(ActivityHandler):
         self.user_prop = self.user_state.create_property("user_state")
 
 
+    def create_conv_history(self):
+        """Connect to the history handled and get a conversation id."""
+        return requests.get(os.environ.get('WEB_APP_PATH') + '/new-conversation').json()['conv_id']
+
+
+    def send_message_to_history(self, conv_id, writer, text, understood):
+        """Save a message into the history (make the API call)."""
+        requests.get(os.environ.get('WEB_APP_PATH') + '/new-message?conversation_id=' + str(conv_id) + '&text=' + str(text) + '&writer=' + str(writer) + '&understood=' + str(understood))
+
+
+    async def bot_answers(self, turn_context: TurnContext, conv_id, text, understood=True):
+        """Function to handle response from the Bot (history + send message to the chat)"""
+        self.send_message_to_history(conv_id, 'Bot', text, understood)
+        await turn_context.send_activity(text)
+
+
 
     async def on_turn(self, turn_context: TurnContext):
         """Way to store the state from a turn to another."""
@@ -102,19 +119,21 @@ class FlyMeBot(ActivityHandler):
         mmap1.record(tmap1)
         print('-- INSIGHTS: New conversation --')
 
-        await self.start_conv(turn_context)
+        user_infos = await self.user_prop.get(turn_context, UserModel)
+        user_infos.conv_id = self.create_conv_history()
+        await self.start_conv(turn_context, user_infos.conv_id)
 
 
 
-    async def start_conv(self, turn_context: TurnContext):
+    async def start_conv(self, turn_context: TurnContext, conv_id):
         """Print out the welcoming messages."""
 
-        await turn_context.send_activity('Hello, welcome to FlyMeBot,\r\nI am a here to understand where and when do you want to book a flight.')
-        await turn_context.send_activity('Tell me informations about the flight you would like to book?')
+        await self.bot_answers(turn_context, conv_id, 'Hello, welcome to FlyMeBot,\r\nI am a here to understand where and when do you want to book a flight.')
+        await self.bot_answers(turn_context, conv_id, 'Tell me informations about the flight you would like to book?')
 
 
 
-    async def end_conv(self, turn_context: TurnContext):
+    async def end_conv(self, turn_context: TurnContext, conv_id):
         """Print out the ending messages."""
 
         mmap1.measure_int_put(conversation_ended_count, 1)
@@ -124,15 +143,16 @@ class FlyMeBot(ActivityHandler):
         answer = "All right, I will look for that, and send you an offer that most correspond to your wishes, directly in your email!"
         answer += "\r\nI hope the conversation went smoothly enough to satisfy you."
         answer += "\r\nThank you very much for using FlyMeBot to look for your flight."
-        await turn_context.send_activity(answer)
+        await self.bot_answers(turn_context, conv_id, answer)
         answer = '-- you may now close the conversation, or send another message about another flight --'
-        await turn_context.send_activity(answer)
+        await self.bot_answers(turn_context, conv_id, answer)
 
 
-    async def look_for_missing(self, missing, turn_context: TurnContext):
+    async def look_for_missing(self, missing, turn_context: TurnContext, conv_id):
+        """Asks the user about missing information."""
         answer = 'I need additional information about your flight.\r\n'
         answer += 'Can you tell me more about the ' + missing.replace('_', ' ') + ' of your flight?'
-        await turn_context.send_activity(answer)
+        await self.bot_answers(turn_context, conv_id, answer)
 
 
 
@@ -150,6 +170,7 @@ class FlyMeBot(ActivityHandler):
         conv_state = await self.conv_prop.get(turn_context, ConvState)
         user_infos = await self.user_prop.get(turn_context, UserModel)
 
+        self.send_message_to_history(user_infos.conv_id, 'User', incoming_text, True)
 
         # When the conversation just started or has been reset:
         if conv_state.step == 'init':
@@ -157,13 +178,14 @@ class FlyMeBot(ActivityHandler):
 
             if len(found_entities) == 0:
                 answer = 'I found no information about a possible flight in your message, can you try again with different words?'
-                await turn_context.send_activity(answer)
+                await self.bot_answers(turn_context, user_infos.conv_id, answer)
+                
                 conv_state.step = 'init' # We keep it at this step
             
             else:
                 user_infos.parse_entities(found_entities, True)
                 answer = user_infos.sum_up()
-                await turn_context.send_activity(answer)
+                await self.bot_answers(turn_context, user_infos.conv_id, answer)
                 conv_state.step = 'sum-up-confirm'
 
 
@@ -180,16 +202,17 @@ class FlyMeBot(ActivityHandler):
                 mmap2.record(tmap2)
                 self.right_interpretation += 1
                 print('-- INSIGHTS: Right interpretation -- ')
+                await self.bot_answers(turn_context, user_infos.conv_id, "Very good!")
 
                 # The user provided every information needed: finish the conversation
                 if missing == 'complete':
-                    await self.end_conv(turn_context)
+                    await self.end_conv(turn_context, user_infos.conv_id)
+                    user_infos = UserModel()
                     conv_state.step = 'init'
 
                 # There is some information missing:
                 else:  
-                    await turn_context.send_activity('Very good!')
-                    await self.look_for_missing(missing, turn_context)
+                    await self.look_for_missing(missing, turn_context, user_infos.conv_id)
                     conv_state.step = 'look-for-missing'
 
 
@@ -206,7 +229,7 @@ class FlyMeBot(ActivityHandler):
                 # Send response to user
                 answer = 'That is sad...\r\n'
                 answer += 'What is wrong? The "destination", "origin", "go date", "back date" or "budget"?'
-                await turn_context.send_activity(answer)
+                await self.bot_answers(turn_context, user_infos.conv_id, answer, False)
                 conv_state.step = 'choose-correction'
             
             # If he answered something the bot did not get (not registered as a yes or a no)
@@ -227,15 +250,15 @@ class FlyMeBot(ActivityHandler):
                 missing = user_infos.get_missing() # To see if there is still missing information:
                 if missing == 'complete':
                     answer = user_infos.sum_up()
-                    await turn_context.send_activity(answer)
+                    await self.bot_answers(turn_context, user_infos.conv_id, answer)
                     conv_state.step = 'sum-up-confirm'
                 else:  
-                    await self.look_for_missing(missing, turn_context)
+                    await self.look_for_missing(missing, turn_context, user_infos.conv_id)
                     conv_state.step = 'look-for-missing'
             else:
                 answer = 'Uh, that is not a valid value for a ' + missing.replace('_', ' ') + '\r\n'
                 answer += 'Can you be more specific?'
-                await turn_context.send_activity(answer)
+                await self.bot_answers(turn_context, user_infos.conv_id, answer)
 
 
 
@@ -246,14 +269,14 @@ class FlyMeBot(ActivityHandler):
             # If the user did say a righteous property name
             if incoming_text in ['destination', 'origin', 'go date', 'back date', 'budget']:
                 answer = 'What is the new value for ' + incoming_text + '?'
-                await turn_context.send_activity(answer)
+                await self.bot_answers(turn_context, user_infos.conv_id, answer)
                 conv_state.step = 'choose-correction-' + incoming_text
 
             # If the user did not answer something like 'the destination'
             else:
                 answer = 'Sorry, I did not understood your answer.\r\n'
                 answer += 'What is wrong? The "destination", "origin", "go date", "back date" or "budget"?'
-                await turn_context.send_activity(answer)
+                await self.bot_answers(turn_context, user_infos.conv_id, answer)
                 conv_state.step = 'choose-correction'
 
 
@@ -266,16 +289,16 @@ class FlyMeBot(ActivityHandler):
             if found:
                 await turn_context.send_activity('All good, correction taken.')
                 answer = user_infos.sum_up()
-                await turn_context.send_activity(answer)
+                await self.bot_answers(turn_context, user_infos.conv_id, answer)
                 conv_state.step = 'sum-up-confirm'
             else:
                 answer = 'Uh, that is not a valid value for a ' + key + '\r\n'
                 answer += 'Can you be more specific?'
-                await turn_context.send_activity(answer)
+                await self.bot_answers(turn_context, user_infos.conv_id, answer)
 
 
         # This is an error case, it should never happen
         else: 
             print('############ ' + conv_state.step)
             await turn_context.send_activity('é_è \r\nI am sorry I had a malfunction...\r\nWe need to restart the conversation...')
-            await self.start_conv(turn_context)
+            await self.start_conv(turn_context, user_infos.conv_id)

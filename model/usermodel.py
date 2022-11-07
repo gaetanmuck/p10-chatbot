@@ -9,6 +9,7 @@ class UserModel:
         self.go_date = ''
         self.back_date = ''
         self.budget = ''
+        self.conv_id = -1
 
 
 
@@ -71,6 +72,3 @@ class UserModel:
         elif self.back_date == '': return 'back_date'
         elif self.budget == '': return 'budget'
         else: return 'complete'
-
-
-# i would like to go to paris from basel
