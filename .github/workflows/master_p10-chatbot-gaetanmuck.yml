@@ -70,5 +70,5 @@ jobs:
       url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
 
     steps:
-      - name: Install dependencies
+      - name: Run unit tests
         run: python scripts/05-unit-test.py
