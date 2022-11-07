@@ -3,18 +3,20 @@ import dotenv; dotenv.load_dotenv()
 
 # Get environment variables
 print('[UPLOAD-UTTERANCES]: Load variables...')
-endpoint = os.environ.get('CLU_ENDPOINT')
-if not endpoint: raise SystemExit('> Environment variable [CLU_ENDPOINT] is missing')
-project_name = os.environ.get('CLU_PROJECT_NAME')
-if not project_name: raise SystemExit('> Environment variable [CLU_PROJECT_NAME] is missing')
-clu_api_version = os.environ.get('CLU_API_VERSION')
-if not clu_api_version: raise SystemExit('> Environment variable [CLU_API_VERSION] is missing')
-resource_key = os.environ.get('CLU_RESOURCE_KEY')
-if not resource_key: raise SystemExit('> Environment variable [CLU_RESOURCE_KEY] is missing')
-language_code = os.environ.get('CLU_LANGUAGE_CODE')
-if not language_code: raise SystemExit('> Environment variable [CLU_LANGUAGE_CODE] is missing')
+
 utterances_path = os.environ.get('PATH_UTTERANCES')
+endpoint = os.environ.get('CLU_ENDPOINT')
+project_name = os.environ.get('CLU_PROJECT_NAME')
+clu_api_version_upload = os.environ.get('CLU_API_VERSION_UPLOAD')
+resource_key = os.environ.get('CLU_RESOURCE_KEY')
+language_code = os.environ.get('CLU_LANGUAGE_CODE')
+
 if not utterances_path: raise SystemExit('> Environment variable [PATH_UTTERANCES] is missing')
+if not endpoint: raise SystemExit('> Environment variable [CLU_ENDPOINT] is missing')
+if not project_name: raise SystemExit('> Environment variable [CLU_PROJECT_NAME] is missing')
+if not clu_api_version_upload: raise SystemExit('> Environment variable [CLU_API_VERSION_UPLOAD] is missing')
+if not resource_key: raise SystemExit('> Environment variable [CLU_RESOURCE_KEY] is missing')
+if not language_code: raise SystemExit('> Environment variable [CLU_LANGUAGE_CODE] is missing')
 
 
 # Read utterances
@@ -27,7 +29,7 @@ file.close()
 print('[UPLOAD-UTTERANCES]: Prepare the API call...')
 
 # Create the URL
-url = f"{endpoint}language/authoring/analyze-conversations/projects/{project_name}/:import?api-version={clu_api_version}"
+url = f"{endpoint}language/authoring/analyze-conversations/projects/{project_name}/:import?api-version={clu_api_version_upload}"
 
 
 # Create headers
@@ -38,7 +40,7 @@ headers = {
 
 # Create the body
 body = {
-    "projectFileVersion": clu_api_version,
+    "projectFileVersion": clu_api_version_upload,
     "stringIndexType": "Utf16CodeUnit",
     "metadata": {
         "projectKind": "Conversation",

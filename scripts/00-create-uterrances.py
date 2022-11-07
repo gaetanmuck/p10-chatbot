@@ -5,13 +5,15 @@ import dotenv; dotenv.load_dotenv()
 
 # Get environment variables
 print('[CREATE-UTTERANCES]: Load variables...')
+
 frame_path = os.environ.get('PATH_FRAMES')
-if not frame_path: raise SystemExit('> Environment variable [PATH_FRAMES] is missing')
 utterances_path = os.environ.get('PATH_UTTERANCES')
-if not utterances_path: raise SystemExit('> Environment variable [PATH_UTTERANCES] is missing')
-train_rate = float(os.environ.get('CLU_TRAIN_RATE'))
-if not train_rate: raise SystemExit('> Environment variable [CLU_TRAIN_RATE] is missing')
+# train_rate = float(os.environ.get('CLU_TRAIN_RATE'))
 language_code = os.environ.get('CLU_LANGUAGE_CODE')
+
+if not frame_path: raise SystemExit('> Environment variable [PATH_FRAMES] is missing')
+if not utterances_path: raise SystemExit('> Environment variable [PATH_UTTERANCES] is missing')
+# if not train_rate: raise SystemExit('> Environment variable [CLU_TRAIN_RATE] is missing')
 if not language_code: raise SystemExit('> Environment variable [CLU_LANGUAGE_CODE] is missing')
 
 
@@ -124,5 +126,5 @@ utterances_filtered = utterances_filtered.sample(frac=1).reset_index(drop=True)
 
 # Save dataset as json at the right place
 print('[CREATE-UTTERANCES]: Write utterances... ')
-# utterances_filtered.to_json(utterances_path, orient='records')
-utterances_filtered[0:3].to_json(utterances_path, orient='records') # Temp
+utterances_filtered.to_json(utterances_path, orient='records')
+# utterances_filtered[0:3].to_json(utterances_path, orient='records') # Temp for test

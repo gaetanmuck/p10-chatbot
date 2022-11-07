@@ -5,24 +5,24 @@ import dotenv; dotenv.load_dotenv()
 
 # Get environment variables
 print('[GET-EVALUATION]: Load variables...')
+
 endpoint = os.environ.get('CLU_ENDPOINT')
-if not endpoint: raise SystemExit('> Environment variable [CLU_ENDPOINT] is missing')
 project_name = os.environ.get('CLU_PROJECT_NAME')
-if not project_name: raise SystemExit('> Environment variable [CLU_PROJECT_NAME] is missing')
-clu_api_version = os.environ.get('CLU_API_VERSION')
-if not clu_api_version: raise SystemExit('> Environment variable [CLU_API_VERSION] is missing')
-clu_evaluation_version = os.environ.get('CLU_EVAL_VERSION')
-if not clu_evaluation_version: raise SystemExit('> Environment variable [CLU_EVAL_VERSION] is missing')
+clu_api_version_eval = os.environ.get('CLU_API_VERSION_EVAL')
 resource_key = os.environ.get('CLU_RESOURCE_KEY')
-if not resource_key: raise SystemExit('> Environment variable [CLU_RESOURCE_KEY] is missing')
 model_name = os.environ.get('CLU_MODEL_NAME')
+
+if not endpoint: raise SystemExit('> Environment variable [CLU_ENDPOINT] is missing')
+if not project_name: raise SystemExit('> Environment variable [CLU_PROJECT_NAME] is missing')
+if not clu_api_version_eval: raise SystemExit('> Environment variable [CLU_API_VERSION_EVAL] is missing')
+if not resource_key: raise SystemExit('> Environment variable [CLU_RESOURCE_KEY] is missing')
 if not model_name: raise SystemExit('> Environment variable [CLU_MODEL_NAME] is missing')
 
 
 print('[GET-EVALUATION]: Prepare the API call...')
 
 # Create the URL
-url = f"{endpoint}/language/authoring/analyze-conversations/projects/{project_name}/models/{model_name}/evaluation/summary-result?api-version={clu_evaluation_version}"
+url = f"{endpoint}/language/authoring/analyze-conversations/projects/{project_name}/models/{model_name}/evaluation/summary-result?api-version={clu_api_version_eval}"
 
 
 # Create headers
