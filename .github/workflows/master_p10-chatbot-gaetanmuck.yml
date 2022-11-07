@@ -70,8 +70,12 @@ jobs:
       url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
 
     steps:
-      - name: LS
-        run: ls -la
+      - uses: actions/checkout@v2
+
+      - name: Set up Python version
+        uses: actions/setup-python@v1
+        with:
+          python-version: '3.8'
         
       - name: Run unit tests
         run: python ${GITHUB_WORKSPACE}/scripts/05-unit-test.py
