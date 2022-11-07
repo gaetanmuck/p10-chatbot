@@ -70,5 +70,8 @@ jobs:
       url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
 
     steps:
+      - name: LS
+        run: ls -la
+        
       - name: Run unit tests
         run: python scripts/05-unit-test.py
