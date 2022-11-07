@@ -74,4 +74,4 @@ jobs:
         run: ls -la
         
       - name: Run unit tests
-        run: python scripts/05-unit-test.py
+        run: python ${GITHUB_WORKSPACE}/scripts/05-unit-test.py
