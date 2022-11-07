@@ -80,4 +80,6 @@ jobs:
         run: pip install requests python-dotenv
 
       - name: Run unit tests
+        env:
+          CLU_ENDPOINT: ${{ secrets.CLU_ENDPOINT }}
         run: python scripts/05-unit-test.py
