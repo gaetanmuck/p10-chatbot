@@ -78,4 +78,4 @@ jobs:
           python-version: '3.8'
         
       - name: Run unit tests
-        run: python ${GITHUB_WORKSPACE}/scripts/05-unit-test.py
+        run: python scripts/05-unit-test.py
