@@ -64,7 +64,9 @@ tmap1 = tag_map_module.TagMap()
 mmap2 = stats_recorder.new_measurement_map()
 tmap2 = tag_map_module.TagMap()
 
-exporter = metrics_exporter.new_metrics_exporter()
+exporter = metrics_exporter.new_metrics_exporter(
+    connection_string=os.environ.get('APPLICATIONINSIGHTS_CONNECTION_STRING')
+)
 view_manager.register_exporter(exporter)
 
 ###########################################

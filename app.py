@@ -5,7 +5,7 @@ from model.flymebot import FlyMeBot
 import asyncio
 
 botadaptersettings = BotFrameworkAdapterSettings('', '') 
-botadapter =BotFrameworkAdapter(botadaptersettings)
+botadapter = BotFrameworkAdapter(botadaptersettings)
 
 mem_storage = MemoryStorage()
 conv_state = ConversationState(mem_storage)
