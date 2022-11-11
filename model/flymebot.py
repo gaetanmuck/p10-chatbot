@@ -64,8 +64,10 @@ tmap1 = tag_map_module.TagMap()
 mmap2 = stats_recorder.new_measurement_map()
 tmap2 = tag_map_module.TagMap()
 
+print('INSTRUMENTATION_KEY:', os.environ.get('INSTRUMENTATION_KEY'))
+
 exporter = metrics_exporter.new_metrics_exporter(
-    connection_string=os.environ.get('APPLICATIONINSIGHTS_CONNECTION_STRING')
+    instrumentation_key=os.environ.get('INSTRUMENTATION_KEY')
 )
 view_manager.register_exporter(exporter)
 
