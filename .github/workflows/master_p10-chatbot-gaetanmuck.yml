@@ -87,4 +87,4 @@ jobs:
           CLU_DEPLOYMENT_NAME: ${{ secrets.CLU_DEPLOYMENT_NAME }}
           CLU_MODEL_NAME: ${{ secrets.CLU_MODEL_NAME }}
           CLU_API_VERSION_TEST: ${{ secrets.CLU_API_VERSION_TEST }}
-        run: python scripts/05-unit-test.py
+        run: python scripts/06-unit-test.py
