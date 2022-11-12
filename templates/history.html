@@ -18,7 +18,7 @@
                         <h3 id="recom-title">Conversations</h3>
                         <ul id="list" class="p">
                             {% for conversation in conversations %}
-                                <li><a href="/conv-detail?conversation_id={{ conversation['messages'][0]['conv_id'] }}">Conversation number {{ conversation['messages'][0]['conv_id'] }}</a>
+                                <li><a href="/conv-detail?conversation_id={{ conversation['conversation_id'] }}">Conversation #{{ conversation['conversation_id'] }}</a>
                                 {% if not conversation['understood'] %}
                                     <span style="font-size: 15px;color: #aaa">[had a misunderstanding]</span>
                                 {% endif %}

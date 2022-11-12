@@ -16,7 +16,7 @@
                 <div class="row">
                     <div class="columns">
                         {% if conversation['understood'] %}
-                        <h3>Conversation</h3>
+                        <h3>Conversation #{{ conversation['conversation_id'] }}</h3>
                         {% else %}
                         <h3 style="color:red">Conversation</h3>
                         {% endif %}

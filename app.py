@@ -50,6 +50,7 @@ def new_conversation():
     # Prepare the history object
     history.append({
         'understood': True,
+        'conversation_id': conversation_id - 1,
         'messages': []
     })
 
@@ -63,12 +64,13 @@ def new_message():
     writer = request.args.get('writer')
     understood = request.args.get('understood')
     if understood == 'False': history[conv_id]['understood'] = False
-    history[conv_id]['messages'].append({'conv_id': conv_id, 'text': text, 'writer': writer})
+    history[conv_id]['messages'].append({'text': text, 'writer': writer})
     return ''
 
 
 @app.route('/history', methods=['GET'])
 def history_fct():
+    print(history)
     return render_template('history.html', conversations=history)
 
 
