@@ -64,8 +64,6 @@ tmap1 = tag_map_module.TagMap()
 mmap2 = stats_recorder.new_measurement_map()
 tmap2 = tag_map_module.TagMap()
 
-print('INSTRUMENTATION_KEY:', os.environ.get('INSTRUMENTATION_KEY'))
-
 exporter = metrics_exporter.new_metrics_exporter(
     instrumentation_key=os.environ.get('INSTRUMENTATION_KEY')
 )
@@ -95,7 +93,9 @@ class FlyMeBot(ActivityHandler):
 
     def send_message_to_history(self, conv_id, writer, text, understood):
         """Save a message into the history (make the API call)."""
+        print('WEB_APP_PATH:', os.environ.get('WEB_APP_PATH'))
         requests.get(os.environ.get('WEB_APP_PATH') + '/new-message?conversation_id=' + str(conv_id) + '&text=' + str(text) + '&writer=' + str(writer) + '&understood=' + str(understood))
+
 
 
     async def bot_answers(self, turn_context: TurnContext, conv_id, text, understood=True):
