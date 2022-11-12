@@ -88,6 +88,7 @@ class FlyMeBot(ActivityHandler):
 
     def create_conv_history(self):
         """Connect to the history handled and get a conversation id."""
+        print('WEB_APP_PATH:', os.environ.get('WEB_APP_PATH'))
         return requests.get(os.environ.get('WEB_APP_PATH') + '/new-conversation').json()['conv_id']
 
 
