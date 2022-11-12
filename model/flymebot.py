@@ -88,16 +88,16 @@ class FlyMeBot(ActivityHandler):
 
     def create_conv_history(self):
         """Connect to the history handled and get a conversation id."""
-        response = requests.get(os.environ.get('WEB_APP_PATH') + '/new-conversation')
-        print('PATH:', os.environ.get('WEB_APP_PATH') + '/new-conversation')
-        print('response.content:', response.content)
-        print('response.json():', response.json())
+        # response = requests.get(os.environ.get('WEB_APP_PATH') + '/new-conversation')
+        # print('PATH:', os.environ.get('WEB_APP_PATH') + '/new-conversation')
+        # print('response.content:', response.content)
+        # print('response.json():', response.json())
         return requests.get(os.environ.get('WEB_APP_PATH') + '/new-conversation').json()['conv_id']
 
 
     def send_message_to_history(self, conv_id, writer, text, understood):
         """Save a message into the history (make the API call)."""
-        print('WEB_APP_PATH:', os.environ.get('WEB_APP_PATH'))
+        # print('WEB_APP_PATH:', os.environ.get('WEB_APP_PATH'))
         requests.get(os.environ.get('WEB_APP_PATH') + '/new-message?conversation_id=' + str(conv_id) + '&text=' + str(text) + '&writer=' + str(writer) + '&understood=' + str(understood))
 
 
