@@ -126,5 +126,5 @@ utterances_filtered = utterances_filtered.sample(frac=1).reset_index(drop=True)
 
 # Save dataset as json at the right place
 print('[CREATE-UTTERANCES]: Write utterances... ')
-utterances_filtered.to_json(utterances_path, orient='records')
-# utterances_filtered[0:3].to_json(utterances_path, orient='records') # Temp for test
+# utterances_filtered.to_json(utterances_path, orient='records')
+utterances_filtered[0:3].to_json(utterances_path, orient='records') # Temp for test
